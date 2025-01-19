@@ -1,0 +1,43 @@
+definitions:
+  models.RegisterInput:
+    properties:
+      age:
+        type: integer
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      password_confirm:
+        type: string
+    required:
+    - age
+    - email
+    - name
+    - password
+    - password_confirm
+    type: object
+info:
+  contact: {}
+paths:
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with name, email, and password.
+      parameters:
+      - description: User registration data
+        in: body
+        name: registerInfo
+        required: true
+        schema:
+          $ref: '#/definitions/models.RegisterInput'
+      produces:
+      - application/json
+      responses: {}
+      summary: Register a new user
+      tags:
+      - Auth
+swagger: "2.0"

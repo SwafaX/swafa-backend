@@ -1,0 +1,51 @@
+version: '3.9'
+
+networks:
+  app-network: # Define a custom network
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:15-alpine  
+    container_name: postgres_tododb
+    ports:
+      - "5435:5432"     
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network # Connect to the custom network
+
+  redis:
+    image: redis:alpine
+    container_name: redis_server
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - redis_data:/data
+    env_file:
+      - .env
+    networks:
+      - app-network # Connect to the custom network
+
+  minio:
+    hostname: minio
+    image: "minio/minio"
+    container_name: minio
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    command: ["server", "/data", "--console-address", ":9001"]
+    volumes:
+      - minio_data:/data
+    env_file:
+      - .env
+    networks:
+      - app-network # Connect to the custom network
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

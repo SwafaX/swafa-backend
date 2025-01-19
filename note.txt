@@ -1,0 +1,12 @@
+to do:
+- upload image
+- post feature
+
+improvement:
+- hiện tại đang sign jwt token dựa trên symmetric encryption nghĩa là cần 1 key là dc -> improve bằng cách dùng cặp public/private key một cái mã hoá một cái xác thực
+- create utils function: Extract token from header since I've rewrote a lot of this
+- (Optional): change the code structure - the controller file got unneccesarily long.
+
+problem:
+- schema change -> delete data in db -> update migration
+- solution chắc có lẽ là phải backup data ở đâu đó xong insert lại db
