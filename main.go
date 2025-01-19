@@ -28,6 +28,9 @@ var (
 
 	PresignedURLController      controllers.PresignedURLController
 	PresignedURLRouteController routes.PresignedURLRouteController
+
+	SwapController      controllers.SwapController
+	SwapRouteController routes.SwapRouteController
 )
 
 func init() {
@@ -58,6 +61,10 @@ func init() {
 	PresignedURLController = controllers.NewPresignedURLController(initializers.MinioClient)
 	PresignedURLRouteController = routes.NewPresignedURLRouteController(PresignedURLController)
 
+	// swap
+	SwapController = controllers.NewSwapController(initializers.DB)
+	SwapRouteController = routes.NewSwapRouteController(SwapController)
+
 	// server
 	server = gin.Default()
 }
@@ -82,6 +89,7 @@ func main() {
 	ItemRouteController.ItemRoute(router)
 	UserRouteController.UserRoute(router)
 	PresignedURLRouteController.PresignedURLRoute(router)
+	SwapRouteController.SwapRoute(router)
 
 	log.Fatal(server.Run("localhost:" + config.ServerPort))
 }
