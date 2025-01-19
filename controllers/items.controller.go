@@ -58,75 +58,12 @@ func (ic *ItemController) CreateItems(c *gin.Context) {
 	})
 }
 
-func (ic *ItemController) Finish(c *gin.Context) {
-	item_id := c.Param("item_id")
-
-	var item models.Item
-
-	result := ic.DB.First(&item, "id = ?", item_id)
-	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  "fail",
-			"message": "Item not found",
-		})
-		return
-	}
-
-	now := time.Now()
-
-	item.Status = "done"
-	item.UpdatedAt = now
-
-	result = ic.DB.Save(&item)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "fail",
-			"message": "Unable to update item status",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   item,
-	})
-}
-
-func (ic *ItemController) Unfinish(c *gin.Context) {
-	item_id := c.Param("item_id")
-
-	var item *models.Item
-
-	result := ic.DB.First(&item, "id = ?", item_id)
-	if result.Error != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status":  "fail",
-			"message": "Item not found",
-		})
-		return
-	}
-
-	now := time.Now()
-
-	item.Status = "unfinished"
-	item.UpdatedAt = now
-
-	result = ic.DB.Save(&item)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":  "fail",
-			"message": "Unable to update item status",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   item,
-	})
-}
-
+// Get all items for newsfeed
 func (ic *ItemController) GetAllItems(c *gin.Context) {
+	// To be implemented
+}
+
+func (ic *ItemController) GetMyItems(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(models.User)
 
 	var items *[]models.Item
@@ -135,12 +72,73 @@ func (ic *ItemController) GetAllItems(c *gin.Context) {
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "fail",
-			"message": "Unable to get items.",
+			"message": "Unable to get my items.",
 		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"data":   items,
+	})
+}
+
+func (ic *ItemController) CreateSwapRequest(c *gin.Context) {
+	currentUser := c.MustGet("currentUser").(models.User)
+	itemID := c.Param("item_id")
+
+	var payload struct {
+		Message string `json:"message"`
+	}
+
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  "fail",
+			"error":   "Invalid input",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// Check if item exists
+	var item models.Item
+	if err := ic.DB.First(&item, "id = ?", itemID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": "fail",
+			"error":  "Item not found",
+		})
+		return
+	}
+
+	// Prevent the user from requesting their own item
+	if item.UserID == currentUser.ID {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "fail",
+			"error":  "You cannot swap for your own item",
+		})
+		return
+	}
+
+	swap := &models.Swap{
+		RequesterID:   currentUser.ID,
+		RecipientID:   item.UserID,
+		RequestItemID: item.ID,
+		Message:       payload.Message,
+		Status:        "pending",
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
+	}
+
+	if err := ic.DB.Create(&swap).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "fail",
+			"details": "Failed to create swap",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"status":  "Created",
+		"message": "Swap created successfully",
+		"data":    swap,
 	})
 }

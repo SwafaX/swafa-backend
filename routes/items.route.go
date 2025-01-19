@@ -18,8 +18,6 @@ func (rc *ItemRouteController) ItemRoute(rg *gin.RouterGroup) {
 	router := rg.Group("items")
 
 	router.POST("", middleware.DeserializeUSer(), rc.ItemController.CreateItems)
-	router.POST(":item_id/finish", middleware.DeserializeUSer(), rc.ItemController.Finish)
-	router.POST(":item_id/unfinish", middleware.DeserializeUSer(), rc.ItemController.Unfinish)
-
-	router.GET("", middleware.DeserializeUSer(), rc.ItemController.GetAllItems)
+	router.POST(":item_id/swap_request", middleware.DeserializeUSer(), rc.ItemController.CreateSwapRequest)
+	router.GET("me", middleware.DeserializeUSer(), rc.ItemController.GetMyItems)
 }
