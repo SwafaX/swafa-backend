@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/calvinnle/todo-app/initializers"
-	"github.com/calvinnle/todo-app/models"
+	"github.com/SwafaX/swafa-backend/initializers"
+	"github.com/SwafaX/swafa-backend/models"
 )
 
 func init() {

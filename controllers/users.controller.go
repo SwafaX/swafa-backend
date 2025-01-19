@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/calvinnle/todo-app/initializers"
-	"github.com/calvinnle/todo-app/models"
+	"github.com/SwafaX/swafa-backend/initializers"
+	"github.com/SwafaX/swafa-backend/models"
 	"github.com/gin-gonic/gin"
 	"github.com/minio/minio-go/v7"
 	"gorm.io/gorm"

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"github.com/calvinnle/todo-app/controllers"
-	"github.com/calvinnle/todo-app/middleware"
+	"github.com/SwafaX/swafa-backend/controllers"
+	"github.com/SwafaX/swafa-backend/middleware"
 	"github.com/gin-gonic/gin"
 )
 

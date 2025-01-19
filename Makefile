@@ -8,7 +8,7 @@ build:
 	go build .
 
 run:
-	./todo-app
+	./swafa-backend
 
 go:
 	make build && make run
@@ -17,4 +17,4 @@ all:
 	make up && make go
 
 clean:
-	rm todo-app && make down
+	make down && rm swafa-backend

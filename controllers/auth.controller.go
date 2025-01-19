@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/calvinnle/todo-app/initializers"
-	"github.com/calvinnle/todo-app/models"
-	"github.com/calvinnle/todo-app/utils"
+	"github.com/SwafaX/swafa-backend/initializers"
+	"github.com/SwafaX/swafa-backend/models"
+	"github.com/SwafaX/swafa-backend/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"

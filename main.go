@@ -4,12 +4,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/calvinnle/todo-app/controllers"
-	"github.com/calvinnle/todo-app/initializers"
-	"github.com/calvinnle/todo-app/routes"
+	"github.com/SwafaX/swafa-backend/controllers"
+	"github.com/SwafaX/swafa-backend/initializers"
+	"github.com/SwafaX/swafa-backend/routes"
 	"github.com/gin-gonic/gin"
 
-	docs "github.com/calvinnle/todo-app/docs"
+	docs "github.com/SwafaX/swafa-backend/docs"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -26,8 +26,8 @@ var (
 	UserController      controllers.UserController
 	UserRouteController routes.UserRouteController
 
-	ImageController      controllers.ImageController
-	ImageRouteController routes.ImageRouteController
+	PresignedURLController      controllers.PresignedURLController
+	PresignedURLRouteController routes.PresignedURLRouteController
 )
 
 func init() {
@@ -54,9 +54,9 @@ func init() {
 	UserController = controllers.NewUserController(initializers.DB, initializers.MinioClient)
 	UserRouteController = routes.NewUserRouteController(UserController)
 
-	// image uploader
-	ImageController = controllers.NewImageController(initializers.MinioClient)
-	ImageRouteController = routes.NewImageRouteController(ImageController)
+	// presigned URL
+	PresignedURLController = controllers.NewPresignedURLController(initializers.MinioClient)
+	PresignedURLRouteController = routes.NewPresignedURLRouteController(PresignedURLController)
 
 	// server
 	server = gin.Default()
@@ -81,7 +81,7 @@ func main() {
 	AuthRouteController.AuthRoute(router)
 	ItemRouteController.ItemRoute(router)
 	UserRouteController.UserRoute(router)
-	ImageRouteController.ImageRoute(router)
+	PresignedURLRouteController.PresignedURLRoute(router)
 
 	log.Fatal(server.Run("localhost:" + config.ServerPort))
 }
