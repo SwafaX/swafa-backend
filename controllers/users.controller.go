@@ -43,7 +43,6 @@ func (uc *UserController) GetMyProfile(c *gin.Context) {
 			"id":    dbUser.ID,
 			"name":  dbUser.Name,
 			"email": dbUser.Email,
-			"age":   dbUser.Age,
 		},
 	})
 }
@@ -74,9 +73,6 @@ func (uc *UserController) UpdateMyProfile(c *gin.Context) {
 	if updateInfo.Name != "" {
 		dbUser.Name = updateInfo.Name
 	}
-	if updateInfo.Age > 0 {
-		dbUser.Age = int64(updateInfo.Age)
-	}
 
 	now := time.Now()
 
@@ -94,7 +90,6 @@ func (uc *UserController) UpdateMyProfile(c *gin.Context) {
 			"id":         dbUser.ID,
 			"name":       dbUser.Name,
 			"email":      dbUser.Email,
-			"age":        dbUser.Age,
 			"created_at": dbUser.CreatedAt,
 			"updated_at": now,
 		},
@@ -121,7 +116,6 @@ func (uc *UserController) GetUserProfile(c *gin.Context) {
 			"id":    user.ID,
 			"name":  user.Name,
 			"email": user.Email,
-			"age":   user.Age,
 		},
 	})
 }

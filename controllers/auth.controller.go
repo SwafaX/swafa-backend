@@ -78,7 +78,6 @@ func (ac *AuthController) Register(c *gin.Context) {
 		ID:        uuid.New(),
 		Name:      registerInfo.Name,
 		Email:     registerInfo.Email,
-		Age:       registerInfo.Age,
 		Password:  hashedPassword,
 		CreatedAt: now,
 		UpdatedAt: now,
@@ -103,7 +102,7 @@ func (ac *AuthController) Register(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"status": "success",
-		"data":   newUser,
+		"user":   newUser,
 	})
 }
 

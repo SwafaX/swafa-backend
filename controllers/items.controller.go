@@ -117,25 +117,6 @@ func (ic *ItemController) GetItemByID(c *gin.Context) {
 	})
 }
 
-// Get all items belongs to a user
-func (ic *ItemController) GetUserItems(c *gin.Context) {
-	userID := c.Param("user_id")
-
-	var items *[]models.Item
-	if err := ic.DB.Where("user_id = ?", userID).Find(&items).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"status": "fail",
-			"error":  "No items found for this user",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Items fetched successfully",
-		"data":    items,
-	})
-}
-
 func (ic *ItemController) CreateSwapRequest(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(models.User)
 	itemID := c.Param("item_id")
