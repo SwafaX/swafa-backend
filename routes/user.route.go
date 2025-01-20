@@ -21,4 +21,5 @@ func (uc *UserRouteController) UserRoute(rg *gin.RouterGroup) {
 	router.PUT("me/profile", middleware.DeserializeUSer(), uc.userController.UpdateMyProfile)
 
 	router.GET(":user_id/profile", middleware.DeserializeUSer(), uc.userController.GetUserProfile)
+	router.GET(":user_id/items", middleware.DeserializeUSer(), uc.userController.ShowItems)
 }

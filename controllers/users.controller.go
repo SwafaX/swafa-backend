@@ -125,3 +125,22 @@ func (uc *UserController) GetUserProfile(c *gin.Context) {
 		},
 	})
 }
+
+// Get all items belongs to a user
+func (uc *UserController) ShowItems(c *gin.Context) {
+	userID := c.Param("user_id")
+
+	var items *[]models.Item
+	if err := uc.DB.Where("user_id = ?", userID).Find(&items).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": "fail",
+			"error":  "No items found for this user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Items fetched successfully",
+		"data":    items,
+	})
+}
