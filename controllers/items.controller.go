@@ -98,12 +98,11 @@ func (ic *ItemController) GetMyItems(c *gin.Context) {
 }
 
 func (ic *ItemController) GetItemByID(c *gin.Context) {
-	currentUser := c.MustGet("currentUser").(models.User)
 	item_id := c.Param("item_id")
 
 	var item *models.Item
 
-	result := ic.DB.First(&item, "user_id = ? AND id = ?", currentUser.ID, item_id)
+	result := ic.DB.First(&item, "id = ?", item_id)
 	if result.Error != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status":  "fail",
@@ -115,6 +114,25 @@ func (ic *ItemController) GetItemByID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
 		"item":   item,
+	})
+}
+
+// Get all items belongs to a user
+func (ic *ItemController) GetUserItems(c *gin.Context) {
+	userID := c.Param("user_id")
+
+	var items *[]models.Item
+	if err := ic.DB.Where("user_id = ?", userID).Find(&items).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": "fail",
+			"error":  "No items found for this user",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Items fetched successfully",
+		"data":    items,
 	})
 }
 

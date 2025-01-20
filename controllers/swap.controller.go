@@ -195,6 +195,27 @@ func (sc *SwapController) GetAllSwaps(c *gin.Context) {
 	})
 }
 
+func (sc *SwapController) GetSwapByID(c *gin.Context) {
+	currentUser := c.MustGet("currentUser").(models.User)
+	swapID := c.Param("swap_id")
+
+	var swap models.Swap
+
+	query := sc.DB.Where("id = ? AND (requester_id = ? OR recipient_id = ?)", swapID, currentUser.ID, currentUser.ID)
+	if err := query.First(&swap).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": "fail",
+			"error":  "Swap not found or you don't have access to it",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Swap fetched successfully",
+		"data":    swap,
+	})
+}
+
 func (sc *SwapController) GetSentSwaps(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(models.User)
 

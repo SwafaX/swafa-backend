@@ -23,6 +23,7 @@ func (sc *SwapRouteController) SwapRoute(rg *gin.RouterGroup) {
 	router.GET("", middleware.DeserializeUSer(), sc.swapController.GetAllSwaps)
 	router.GET("sent", middleware.DeserializeUSer(), sc.swapController.GetSentSwaps)
 	router.GET("received", middleware.DeserializeUSer(), sc.swapController.GetReceivedSwaps)
+	router.GET(":swap_id", middleware.DeserializeUSer(), sc.swapController.GetSwapByID)
 
 	router.DELETE(":swap_id", middleware.DeserializeUSer(), sc.swapController.DeleteSwap)
 }

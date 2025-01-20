@@ -24,7 +24,7 @@ func NewUserController(DB *gorm.DB, MinIO *minio.Client) UserController {
 	}
 }
 
-func (uc *UserController) GetProfile(c *gin.Context) {
+func (uc *UserController) GetMyProfile(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(models.User)
 
 	var dbUser models.User
@@ -48,7 +48,7 @@ func (uc *UserController) GetProfile(c *gin.Context) {
 	})
 }
 
-func (uc *UserController) UpdateProfile(c *gin.Context) {
+func (uc *UserController) UpdateMyProfile(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(models.User)
 
 	var dbUser models.User
@@ -97,6 +97,31 @@ func (uc *UserController) UpdateProfile(c *gin.Context) {
 			"age":        dbUser.Age,
 			"created_at": dbUser.CreatedAt,
 			"updated_at": now,
+		},
+	})
+}
+
+func (uc *UserController) GetUserProfile(c *gin.Context) {
+	userID := c.Param("user_id")
+
+	var user models.User
+
+	// Fetch the user profile by ID
+	if err := uc.DB.First(&user, "id = ?", userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": "fail",
+			"error":  "User not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"data": gin.H{
+			"id":    user.ID,
+			"name":  user.Name,
+			"email": user.Email,
+			"age":   user.Age,
 		},
 	})
 }
