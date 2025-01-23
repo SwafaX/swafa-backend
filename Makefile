@@ -18,3 +18,6 @@ all:
 
 clean:
 	make down && rm swafa-backend
+
+migrate:
+	go run migrations/migrate.go
