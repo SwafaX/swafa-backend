@@ -41,8 +41,8 @@ func init() {
 	}
 
 	// connect to dependencies
-	initializers.ConnectDB(&config)
 	initializers.ConnectRedis(&config)
+	initializers.ConnectDB(&config)
 	initializers.ConnectMinio(&config)
 
 	// auth
@@ -91,5 +91,5 @@ func main() {
 	PresignedURLRouteController.PresignedURLRoute(router)
 	SwapRouteController.SwapRoute(router)
 
-	log.Fatal(server.Run("localhost:" + config.ServerPort))
+	log.Fatal(server.Run("0.0.0.0:" + config.ServerPort))
 }

@@ -1,21 +1,39 @@
 version: '3.9'
 
 networks:
-  app-network: # Define a custom network
+  app-network:
     driver: bridge
 
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go-app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - minio
+    networks:
+      - app-network
+
   postgres:
     image: postgres:15-alpine  
     container_name: postgres_tododb
     ports:
       - "5435:5432"     
-    env_file:
-      - .env
+    environment:
+      POSTGRES_USER: todo_user
+      POSTGRES_PASSWORD: todo_password
+      POSTGRES_DB: tododb
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - app-network # Connect to the custom network
+      - app-network
 
   redis:
     image: redis:alpine
@@ -28,7 +46,7 @@ services:
     env_file:
       - .env
     networks:
-      - app-network # Connect to the custom network
+      - app-network
 
   minio:
     hostname: minio
@@ -43,7 +61,7 @@ services:
     env_file:
       - .env
     networks:
-      - app-network # Connect to the custom network
+      - app-network
 
 volumes:
   postgres_data:
