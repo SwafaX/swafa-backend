@@ -73,7 +73,7 @@ func main() {
 	config, err := initializers.LoadConfig(".")
 
 	if err != nil {
-		log.Fatal("🚀 Could not load environment variables", err)
+		log.Fatal("Could not load environment variables", err)
 	}
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	router := server.Group("/api/v1")
@@ -85,11 +85,16 @@ func main() {
 	})
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
+	// core
 	AuthRouteController.AuthRoute(router)
 	ItemRouteController.ItemRoute(router)
 	UserRouteController.UserRoute(router)
-	PresignedURLRouteController.PresignedURLRoute(router)
 	SwapRouteController.SwapRoute(router)
+
+	// photo uploading
+	PresignedURLRouteController.PresignedURLRoute(router)
+
+	// websocket (on progress)
 
 	log.Fatal(server.Run("0.0.0.0:" + config.ServerPort))
 }
