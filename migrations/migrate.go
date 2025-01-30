@@ -32,9 +32,9 @@ func MigrateUp() {
 		modelName := reflect.TypeOf(model).Elem().Name()
 
 		if err != nil {
-			fmt.Printf("❌ Failed to create table for %s: %v\n", modelName, err)
+			fmt.Printf("Failed to create table for %s: %v\n", modelName, err)
 		} else {
-			fmt.Printf("✅ Created table: %s\n", modelName)
+			fmt.Printf("Created table: %s\n", modelName)
 		}
 	}
 
@@ -48,9 +48,9 @@ func MigrateDown() {
 		err := initializers.DB.Migrator().DropTable(model)
 		modelName := reflect.TypeOf(model).Elem().Name()
 		if err != nil {
-			fmt.Printf("❌ Failed to drop table for %s: %v\n", modelName, err)
+			fmt.Printf("Failed to drop table for %s: %v\n", modelName, err)
 		} else {
-			fmt.Printf("✅ Dropped table: %s\n", modelName)
+			fmt.Printf("Dropped table: %s\n", modelName)
 		}
 	}
 
