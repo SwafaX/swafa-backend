@@ -10,16 +10,39 @@ import (
 
 	"github.com/SwafaX/swafa-backend/initializers"
 	"github.com/SwafaX/swafa-backend/models"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
+var DB *gorm.DB
+
 func init() {
+	var err error
+
 	config, err := initializers.LoadConfig(".")
 
-	if err != nil {
-		log.Fatal("Could not load environment variables", err)
-	}
+	// https://gorm.io/docs/connecting_to_the_database.html#PostgreSQL
+	dsn := fmt.Sprintf(`
+		host=%s 
+		user=%s 
+		password=%s 
+		dbname=%s 
+		port=%s 
+		sslmode=disable 
+		TimeZone=Asia/Shanghai`,
+		"localhost",
+		config.DBUser,
+		config.DBPass,
+		config.DBName,
+		"5435",
+	)
 
-	initializers.ConnectDB(&config)
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+		log.Fatal("Failed to connect to database.")
+	}
 }
 
 func MigrateUp() {

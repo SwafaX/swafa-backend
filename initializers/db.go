@@ -22,11 +22,11 @@ func ConnectDB(config *Config) {
 		port=%s 
 		sslmode=disable 
 		TimeZone=Asia/Shanghai`,
-		"127.0.0.1",
+		config.DBHost,
 		config.DBUser,
 		config.DBPass,
 		config.DBName,
-		"5435",
+		config.DBPort,
 	)
 
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
