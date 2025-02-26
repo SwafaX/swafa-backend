@@ -31,6 +31,9 @@ var (
 
 	SwapController      controllers.SwapController
 	SwapRouteController routes.SwapRouteController
+
+	WebSocketController      controllers.WebSocketController
+	WebSocketRouteController routes.WebSocketRouteController
 )
 
 func init() {
@@ -65,6 +68,10 @@ func init() {
 	SwapController = controllers.NewSwapController(initializers.DB)
 	SwapRouteController = routes.NewSwapRouteController(SwapController)
 
+	// websocket
+	WebSocketController = controllers.NewWebSocketController(initializers.DB)
+	WebSocketRouteController = routes.NewWebSocketRouteController(WebSocketController)
+
 	// server
 	server = gin.Default()
 }
@@ -94,7 +101,8 @@ func main() {
 	// photo uploading
 	PresignedURLRouteController.PresignedURLRoute(router)
 
-	// websocket (on progress)
+	// websocket
+	WebSocketRouteController.WebSocketRoute(router)
 
 	log.Fatal(server.Run("0.0.0.0:" + config.ServerPort))
 }
