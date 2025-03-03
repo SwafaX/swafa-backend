@@ -1,3 +1,4 @@
+# Builder stage
 FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
@@ -10,12 +11,15 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main .
 
-# Use a minimal Alpine image for the final stage
+# Final stage
 FROM alpine:latest
 
-COPY --from=builder /app/main .
+# Create the /app directory in the final stage
+WORKDIR /app
 
-COPY .env .env
+# Copy the built binary and .env file from the builder stage
+COPY --from=builder /app/main .
+COPY --from=builder /app/.env .
 
 EXPOSE 8000
 

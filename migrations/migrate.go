@@ -18,11 +18,11 @@ import (
 var DB *gorm.DB
 
 func init() {
-	var err error
-
 	config, err := initializers.LoadConfig(".")
+	if err != nil {
+		log.Fatalf("Failed to load config: %v", err)
+	}
 
-	// https://gorm.io/docs/connecting_to_the_database.html#PostgreSQL
 	dsn := fmt.Sprintf(`
 		host=%s 
 		user=%s 
@@ -39,21 +39,23 @@ func init() {
 	)
 
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
 	if err != nil {
-		log.Fatal("Failed to connect to database.")
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 }
 
 func MigrateUp() {
-	initializers.DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
+	DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
 
 	modelsToMigrate := []interface{}{&models.Item{}, &models.User{}, &models.Swap{}}
 
 	for _, model := range modelsToMigrate {
-		err := initializers.DB.AutoMigrate(model)
+		if model == nil {
+			fmt.Println("Skipping nil model")
+			continue
+		}
 		modelName := reflect.TypeOf(model).Elem().Name()
-
+		err := DB.AutoMigrate(model)
 		if err != nil {
 			fmt.Printf("Failed to create table for %s: %v\n", modelName, err)
 		} else {
@@ -68,8 +70,12 @@ func MigrateDown() {
 	modelsToDrop := []interface{}{&models.User{}, &models.Item{}, &models.Swap{}}
 
 	for _, model := range modelsToDrop {
-		err := initializers.DB.Migrator().DropTable(model)
+		if model == nil {
+			fmt.Println("Skipping nil model")
+			continue
+		}
 		modelName := reflect.TypeOf(model).Elem().Name()
+		err := DB.Migrator().DropTable(model)
 		if err != nil {
 			fmt.Printf("Failed to drop table for %s: %v\n", modelName, err)
 		} else {
@@ -87,12 +93,9 @@ func main() {
 	input := scanner.Text()
 	if strings.TrimSpace(strings.ToLower(input)) == "up" {
 		MigrateUp()
-		return
 	} else if strings.TrimSpace(strings.ToLower(input)) == "down" {
 		MigrateDown()
-		return
 	} else {
 		log.Fatalln("Invalid input")
-		return
 	}
 }
