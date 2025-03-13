@@ -1,10 +1,12 @@
 module github.com/SwafaX/swafa-backend
+
 go 1.23.3
 
 require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/websocket v1.4.2
 	github.com/minio/minio-go/v7 v7.0.83
 	github.com/spf13/viper v1.19.0
 	github.com/swaggo/files v1.0.1

@@ -47,7 +47,7 @@ func init() {
 func MigrateUp() {
 	DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
 
-	modelsToMigrate := []interface{}{&models.Item{}, &models.User{}, &models.Swap{}}
+	modelsToMigrate := []interface{}{&models.User{}, &models.Item{}, &models.Swap{}, &models.Chat{}, &models.Message{}}
 
 	for _, model := range modelsToMigrate {
 		if model == nil {
@@ -67,7 +67,7 @@ func MigrateUp() {
 }
 
 func MigrateDown() {
-	modelsToDrop := []interface{}{&models.User{}, &models.Item{}, &models.Swap{}}
+	modelsToDrop := []interface{}{&models.User{}, &models.Item{}, &models.Swap{}, &models.Chat{}, &models.Message{}}
 
 	for _, model := range modelsToDrop {
 		if model == nil {

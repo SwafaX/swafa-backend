@@ -17,12 +17,12 @@ func NewItemRouteController(ItemController controllers.ItemController) ItemRoute
 func (rc *ItemRouteController) ItemRoute(rg *gin.RouterGroup) {
 	router := rg.Group("items")
 
-	router.GET("", middleware.DeserializeUSer(), rc.ItemController.GetAllItems)
-	router.POST("", middleware.DeserializeUSer(), rc.ItemController.CreateItems)
-	router.POST(":item_id/swap_request", middleware.DeserializeUSer(), rc.ItemController.CreateSwapRequest)
+	router.GET("", middleware.DeserializeUser(), rc.ItemController.GetAllItems)
+	router.POST("", middleware.DeserializeUser(), rc.ItemController.CreateItems)
+	router.POST(":item_id/swap_request", middleware.DeserializeUser(), rc.ItemController.CreateSwapRequest)
 
-	router.GET("me", middleware.DeserializeUSer(), rc.ItemController.GetMyItems)
-	router.GET(":item_id", middleware.DeserializeUSer(), rc.ItemController.GetItemByID)
-	router.PUT(":item_id", middleware.DeserializeUSer(), rc.ItemController.UpdateItem)
-	router.DELETE(":item_id", middleware.DeserializeUSer(), rc.ItemController.DeleteItem)
+	router.GET("me", middleware.DeserializeUser(), rc.ItemController.GetMyItems)
+	router.GET(":item_id", middleware.DeserializeUser(), rc.ItemController.GetItemByID)
+	router.PUT(":item_id", middleware.DeserializeUser(), rc.ItemController.UpdateItem)
+	router.DELETE(":item_id", middleware.DeserializeUser(), rc.ItemController.DeleteItem)
 }

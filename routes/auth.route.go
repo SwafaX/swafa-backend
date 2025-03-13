@@ -20,5 +20,5 @@ func (rc *AuthRouteController) AuthRoute(rg *gin.RouterGroup) {
 	router.POST("register", rc.authController.Register)
 	router.POST("login", rc.authController.LogIn)
 	router.GET("refresh", rc.authController.Refresh)
-	router.POST("logout", middleware.DeserializeUSer(), rc.authController.LogOut)
+	router.POST("logout", middleware.DeserializeUser(), rc.authController.LogOut)
 }

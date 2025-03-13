@@ -17,13 +17,13 @@ func NewSwapRouteController(swapController controllers.SwapController) SwapRoute
 func (sc *SwapRouteController) SwapRoute(rg *gin.RouterGroup) {
 	router := rg.Group("swap")
 
-	router.PUT(":swap_id/accept", middleware.DeserializeUSer(), sc.swapController.AcceptSwap)
-	router.PUT(":swap_id/reject", middleware.DeserializeUSer(), sc.swapController.RejectSwap)
+	router.PUT(":swap_id/accept", middleware.DeserializeUser(), sc.swapController.AcceptSwap)
+	router.PUT(":swap_id/reject", middleware.DeserializeUser(), sc.swapController.RejectSwap)
 
-	router.GET("", middleware.DeserializeUSer(), sc.swapController.GetAllSwaps)
-	router.GET("sent", middleware.DeserializeUSer(), sc.swapController.GetSentSwaps)
-	router.GET("received", middleware.DeserializeUSer(), sc.swapController.GetReceivedSwaps)
-	router.GET(":swap_id", middleware.DeserializeUSer(), sc.swapController.GetSwapByID)
+	router.GET("", middleware.DeserializeUser(), sc.swapController.GetAllSwaps)
+	router.GET("sent", middleware.DeserializeUser(), sc.swapController.GetSentSwaps)
+	router.GET("received", middleware.DeserializeUser(), sc.swapController.GetReceivedSwaps)
+	router.GET(":swap_id", middleware.DeserializeUser(), sc.swapController.GetSwapByID)
 
-	router.DELETE(":swap_id", middleware.DeserializeUSer(), sc.swapController.DeleteSwap)
+	router.DELETE(":swap_id", middleware.DeserializeUser(), sc.swapController.DeleteSwap)
 }
