@@ -2,11 +2,10 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
-	"github.com/SwafaX/swafa-backend/initializers"
 	"github.com/SwafaX/swafa-backend/models"
+	"github.com/SwafaX/swafa-backend/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -48,7 +47,8 @@ func (cc *ChatController) GetMyChats(ctx *gin.Context) {
 
 // GetChatMessages retrieves messages for a specific chat
 func (cc *ChatController) GetChatMessages(ctx *gin.Context) {
-	chatID, err := strconv.ParseUint(ctx.Param("chatId"), 10, 64)
+	chatIDStr := ctx.Param("chatId")
+	chatID, err := uuid.Parse(chatIDStr)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
 		return
@@ -77,13 +77,13 @@ func (cc *ChatController) CreateChat(ctx *gin.Context) {
 		return
 	}
 
-	participant1UUID, err := uuid.Parse(req.Participant1)
+	participant1_id, err := uuid.Parse(req.Participant1)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid participant1 ID"})
 		return
 	}
 
-	participant2UUID, err := uuid.Parse(req.Participant2)
+	participant2_id, err := uuid.Parse(req.Participant2)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid participant2 ID"})
 		return
@@ -93,7 +93,7 @@ func (cc *ChatController) CreateChat(ctx *gin.Context) {
 	var existingChat models.Chat
 	result := cc.DB.Where(
 		"(participant1 = ? AND participant2 = ?) OR (participant1 = ? AND participant2 = ?)",
-		participant1UUID, participant2UUID, participant2UUID, participant1UUID,
+		participant1_id, participant2_id, participant2_id, participant1_id,
 	).First(&existingChat)
 
 	if result.Error == nil {
@@ -104,8 +104,9 @@ func (cc *ChatController) CreateChat(ctx *gin.Context) {
 
 	// Create new chat
 	newChat := models.Chat{
-		Participant1: participant1UUID,
-		Participant2: participant2UUID,
+		ID:           uuid.New(),	
+		Participant1: participant1_id,
+		Participant2: participant2_id,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -153,24 +154,31 @@ func (cc *ChatController) HandleWebSocket(ctx *gin.Context) {
 
 			// Parse message
 			var msg struct {
-				ChatID  uint   `json:"chat_id"`
+				ChatID  string `json:"chat_id"`
 				Content string `json:"content"`
 				To      string `json:"to"`
 			}
 
-			if err := initializers.ParseJSON(string(p), &msg); err != nil {
+			if err := utils.ParseJSON(string(p), &msg); err != nil {
 				continue
 			}
 
 			// Parse the recipient UUID
-			toUUID, err := uuid.Parse(msg.To)
+			toID, err := uuid.Parse(msg.To)
+			if err != nil {
+				continue
+			}
+
+			// Parse the ChatID as UUID
+			chatID, err := uuid.Parse(msg.ChatID)
 			if err != nil {
 				continue
 			}
 
 			// Store message in database
 			newMessage := models.Message{
-				ChatID:    msg.ChatID,
+				ID:        uuid.New(),
+				ChatID:    chatID,
 				SenderID:  userID,
 				Content:   msg.Content,
 				CreatedAt: time.Now(),
@@ -181,8 +189,8 @@ func (cc *ChatController) HandleWebSocket(ctx *gin.Context) {
 			}
 
 			// Send message to recipient if online
-			if recipient, ok := clients[toUUID]; ok {
-				messageJSON, _ := initializers.ToJSON(newMessage)
+			if recipient, ok := clients[toID]; ok {
+				messageJSON, _ := utils.ToJSON(newMessage)
 				recipient.WriteMessage(messageType, []byte(messageJSON))
 			}
 		}

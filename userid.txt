@@ -1,2 +1,0 @@
-thinhid = "6e743407-ab0b-4d51-9f01-7d028f67cfc4"
-khangid = "4091095a-94c3-4e55-b638-4ff36d5f9ecd"
