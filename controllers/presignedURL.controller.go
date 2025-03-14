@@ -27,38 +27,33 @@ const (
 // Gen presigned url
 func (ic *PresignedURLController) PresignedURLGenerator(c *gin.Context) {
 	filename := c.Query("filename")
+	fileType := c.Query("file_type")
 
 	currentUser := c.MustGet("currentUser").(models.User)
-
-	var requestBody struct {
-		File_type string `json:"file_type" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&requestBody); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status":  "fail",
-			"details": "Cannot get file-type",
-		})
-		return
-	}
 
 	if filename == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "filename is required"})
 		return
 	}
 
+	if fileType == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "file_type is required"})
+		return
+	}
+
 	var path string
 
-	// define file type for each case
-	if requestBody.File_type == "avatar" {
+	// Define file type for each case
+	if fileType == "avatar" {
 		path = fmt.Sprintf("users/%s/avatar/avatar.jpg", currentUser.ID)
-	} else if requestBody.File_type == "item" {
+	} else if fileType == "item" {
 		path = fmt.Sprintf("users/%s/items/item-%d.jpg", currentUser.ID, time.Now().UnixNano())
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "file_type is invalid"})
 		return
 	}
 
+	// Generate presigned URL
 	presignedURL, err := ic.Minio.PresignedPutObject(context.Background(), bucketName, path, time.Minute*15)
 	if err != nil {
 		log.Printf("Error generating presigned URL: %v", err)
