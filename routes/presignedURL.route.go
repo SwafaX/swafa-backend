@@ -17,5 +17,5 @@ func NewPresignedURLRouteController(presignedURLController controllers.Presigned
 func (ri *PresignedURLRouteController) PresignedURLRoute(rg *gin.RouterGroup) {
 	router := rg.Group("presigned-url")
 
-	router.GET("", middleware.DeserializeUSer(), ri.presignedURLController.PresignedURLGenerator)
+	router.GET("", middleware.DeserializeUser(), ri.presignedURLController.PresignedURLGenerator)
 }

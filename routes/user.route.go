@@ -17,9 +17,9 @@ func NewUserRouteController(userController controllers.UserController) UserRoute
 func (uc *UserRouteController) UserRoute(rg *gin.RouterGroup) {
 	router := rg.Group("user")
 
-	router.GET("me/profile", middleware.DeserializeUSer(), uc.userController.GetMyProfile)
-	router.PUT("me/profile", middleware.DeserializeUSer(), uc.userController.UpdateMyProfile)
+	router.GET("me/profile", middleware.DeserializeUser(), uc.userController.GetMyProfile)
+	router.PUT("me/profile", middleware.DeserializeUser(), uc.userController.UpdateMyProfile)
 
-	router.GET(":user_id/profile", middleware.DeserializeUSer(), uc.userController.GetUserProfile)
-	router.GET(":user_id/items", middleware.DeserializeUSer(), uc.userController.ShowItems)
+	router.GET(":user_id/profile", middleware.DeserializeUser(), uc.userController.GetUserProfile)
+	router.GET(":user_id/items", middleware.DeserializeUser(), uc.userController.ShowItems)
 }

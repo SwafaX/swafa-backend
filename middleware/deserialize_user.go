@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func DeserializeUSer() gin.HandlerFunc {
+func DeserializeUser() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authorizationHeader := c.Request.Header.Get("Authorization")
 

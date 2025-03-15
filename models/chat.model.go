@@ -3,13 +3,14 @@ package models
 import (
 	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Chat struct {
-	ID        uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
-	SwapID    uuid.UUID `gorm:"type:uuid;not null" json:"swap_id,omitempty"`
-	User1     uuid.UUID `gorm:"type:uuid;not null" json:"user1_id,omitempty"`
-	User2     uuid.UUID `gorm:"type:uuid;not null" json:"user2_id,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID           uuid.UUID  `gorm:"primaryKey" json:"id"`
+	Participant1 uuid.UUID 	`gorm:"not null" json:"participant1_id"`
+	Participant2 uuid.UUID  `gorm:"not null" json:"participant2_id"`
+	CreatedAt    time.Time 	`json:"created_at"`
+	UpdatedAt    time.Time 	`json:"updated_at"`
 }

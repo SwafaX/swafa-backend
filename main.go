@@ -31,6 +31,9 @@ var (
 
 	SwapController      controllers.SwapController
 	SwapRouteController routes.SwapRouteController
+
+	ChatController 		controllers.ChatController
+	ChatRouteController routes.ChatRouteController
 )
 
 func init() {
@@ -65,6 +68,9 @@ func init() {
 	SwapController = controllers.NewSwapController(initializers.DB)
 	SwapRouteController = routes.NewSwapRouteController(SwapController)
 
+	// chat
+	ChatController = controllers.NewChatController(initializers.DB)
+	ChatRouteController = routes.NewChatRouteController(ChatController)
 	// server
 	server = gin.Default()
 }
@@ -95,6 +101,7 @@ func main() {
 	PresignedURLRouteController.PresignedURLRoute(router)
 
 	// websocket (on progress)
+	ChatRouteController.ChatRoute(router)
 
 	log.Fatal(server.Run("0.0.0.0:" + config.ServerPort))
 }
