@@ -1,6 +1,5 @@
 module github.com/SwafaX/swafa-backend
 
-
 go 1.23.3
 
 require (

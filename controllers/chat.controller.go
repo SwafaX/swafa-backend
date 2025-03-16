@@ -104,7 +104,7 @@ func (cc *ChatController) CreateChat(ctx *gin.Context) {
 
 	// Create new chat
 	newChat := models.Chat{
-		ID:           uuid.New(),	
+		ID:           uuid.New(),
 		Participant1: participant1_id,
 		Participant2: participant2_id,
 		CreatedAt:    time.Now(),
