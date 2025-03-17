@@ -43,11 +43,27 @@ func (ic *PresignedURLController) PresignedURLGenerator(c *gin.Context) {
 
 	var path string
 
+	found, err := ic.Minio.BucketExists(context.Background(), bucketName)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	if found {
+		fmt.Println("Bucket found")
+	} else {
+		err := ic.Minio.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{Region: "us-east-1", ObjectLocking: true})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+	fmt.Println("Successfully created mybucket.")
 	// Define file type for each case
 	if fileType == "avatar" {
-		path = fmt.Sprintf("users/%s/avatar/avatar.jpg", currentUser.ID)
+		path = fmt.Sprintf("images/%s/avatar/avatar.jpg", currentUser.ID)
 	} else if fileType == "item" {
-		path = fmt.Sprintf("users/%s/items/item-%d.jpg", currentUser.ID, time.Now().UnixNano())
+		path = fmt.Sprintf("images/%s/items/item-%d.jpg", currentUser.ID, time.Now().UnixNano())
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "file_type is invalid"})
 		return
