@@ -6,6 +6,7 @@ import (
 
 	"github.com/SwafaX/swafa-backend/models"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -87,7 +88,6 @@ func NewSwapController(DB *gorm.DB) SwapController {
 
 func (sc *SwapController) AcceptSwap(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(models.User)
-
 	swapID := c.Param("swap_id")
 
 	var swap models.Swap
@@ -100,7 +100,7 @@ func (sc *SwapController) AcceptSwap(c *gin.Context) {
 		return
 	}
 
-	// in case the swap displayed on the wrong user (might come from Fat's mistake)
+	// verify authorization
 	if swap.RecipientID != currentUser.ID {
 		c.JSON(http.StatusForbidden, gin.H{
 			"error": "You are not authorized to accept this swap",
@@ -108,21 +108,52 @@ func (sc *SwapController) AcceptSwap(c *gin.Context) {
 		return
 	}
 
-	// Update status
+	// start a transaction
+	tx := sc.DB.Begin()
+
+	// update swap status
 	swap.Status = "accepted"
 	swap.UpdatedAt = time.Now()
 
-	if err := sc.DB.Save(&swap).Error; err != nil {
+	if err := tx.Save(&swap).Error; err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Failed to accept swap",
 		})
 		return
 	}
 
+	// create a new chat between requester and recipient
+	newChat := models.Chat{
+		ID:           uuid.New(),
+		Participant1: swap.RequesterID,
+		Participant2: swap.RecipientID,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	if err := tx.Create(&newChat).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to create chat",
+		})
+		return
+	}
+
+	// commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Failed to complete the swap acceptance",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  "success",
-		"message": "Swap accepted",
+		"message": "Swap accepted and chat created",
 		"swap":    swap,
+		"chat":    newChat,
 	})
 }
 
