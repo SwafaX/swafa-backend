@@ -11,6 +11,7 @@ type User struct {
 	Name      string    `gorm:"type:varchar(255);not null"`
 	Email     string    `gorm:"uniqueIndex;not null"`
 	Password  string    `gorm:"not null"`
+	AvatarUrl string    `gorm:"type:text" json:"avatar_url" form:"avatar_url"`
 	CreatedAt time.Time `gorm:"not null"`
 	UpdatedAt time.Time `gorm:"not null"`
 }
