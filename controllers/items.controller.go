@@ -41,6 +41,7 @@ func (ic *ItemController) CreateItems(c *gin.Context) {
 		Title:       payload.Title,
 		Description: payload.Description,
 		UserID:      currentUser.ID,
+		ImageUrl:    payload.ImageUrl,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
