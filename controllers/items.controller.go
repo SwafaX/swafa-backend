@@ -63,9 +63,11 @@ func (ic *ItemController) CreateItems(c *gin.Context) {
 
 // Get all items for newsfeed
 func (ic *ItemController) GetAllItems(c *gin.Context) {
-	var allItems *[]models.Item
+	currentUser := c.MustGet("currentUser").(models.User)
 
-	result := ic.DB.Find(&allItems)
+	var allItems []models.Item
+
+	result := ic.DB.Not("user_id = ?", currentUser.ID).Find(&allItems)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "fail",
