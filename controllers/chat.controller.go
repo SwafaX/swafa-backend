@@ -1,60 +1,97 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/SwafaX/swafa-backend/models"
-	"github.com/SwafaX/swafa-backend/utils"
+	socketio "github.com/doquangtan/socket.io/v4"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 	"gorm.io/gorm"
 )
 
 type ChatController struct {
 	DB *gorm.DB
+	IO *socketio.Io
 }
 
-func NewChatController(DB *gorm.DB) ChatController {
-	return ChatController{DB}
+func NewChatController(DB *gorm.DB, io *socketio.Io) ChatController {
+	return ChatController{DB: DB, IO: io}
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true // Allow all origins for now, adjust for production
-	},
+func (cc *ChatController) SetupSocketHandlers() {
+	cc.IO.OnConnection(func(socket *socketio.Socket) {
+		log.Printf("User connected: %s", socket.Id)
+
+		// Join conversation handler
+		socket.On("joinConversation", func(event *socketio.EventPayload) {
+			if len(event.Data) > 0 {
+				chatID := event.Data[0].(string)
+				socket.Join(chatID)
+				log.Printf("User %s joined conversation: %s", socket.Id, chatID)
+			}
+		})
+
+		// Send message handler
+		socket.On("sendMessage", func(event *socketio.EventPayload) {
+			if len(event.Data) < 1 {
+				return
+			}
+
+			// Add type checking and conversion
+			var messageData map[string]interface{}
+			switch data := event.Data[0].(type) {
+			case string:
+				// Handle string data (likely JSON)
+				log.Printf("Received string data: %v", data)
+				return
+			case map[string]interface{}:
+				messageData = data
+			default:
+				log.Printf("Unexpected data type: %T", data)
+				return
+			}
+
+			chatID, ok1 := messageData["chat_id"].(string)
+			senderID, ok2 := messageData["sender_id"].(string)
+			content, ok3 := messageData["content"].(string)
+
+			if !ok1 || !ok2 || !ok3 {
+				log.Printf("Invalid message format")
+				return
+			}
+
+			// Save message to database
+			message, err := cc.saveMessage(chatID, senderID, content)
+			if err != nil {
+				log.Printf("Failed to save message: %v", err)
+				return
+			}
+
+			// Broadcast to conversation room
+			cc.IO.To(chatID).Emit("newMessage", message)
+
+			// Notify all clients about conversation update
+			cc.IO.Emit("conversationUpdated", map[string]interface{}{
+				"chatId":          chatID,
+				"lastMessage":     message.Content,
+				"lastMessageTime": message.CreatedAt,
+			})
+		})
+
+		// Disconnect handler
+		socket.On("disconnect", func(event *socketio.EventPayload) {
+			log.Printf("User disconnected: %s", socket.Id)
+		})
+	})
 }
 
-// Map to store active connections
-var clients = make(map[uuid.UUID]*websocket.Conn)
-
-// GetChatsByUser retrieves all chats for a specific user
-func (cc *ChatController) GetMyChats(ctx *gin.Context) {
-	currentUser := ctx.MustGet("currentUser").(models.User)
-
-	var chats []models.Chat
-	result := cc.DB.Where("participant1 = ? OR participant2 = ?", currentUser.ID, currentUser.ID).Find(&chats)
-	if result.Error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch chats"})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, chats)
-}
-
-// GetChatMessages retrieves messages for a specific chat
+// GetChatMessages retrieves messages for a specific conversation (keep existing HTTP endpoint)
 func (cc *ChatController) GetChatMessages(ctx *gin.Context) {
-	chatIDStr := ctx.Param("chatId")
-	chatID, err := uuid.Parse(chatIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid chat ID"})
-		return
-	}
+	chatID := ctx.Param("chatId")
 
-	// Fetch messages for the chat
 	var messages []models.Message
 	result := cc.DB.Where("chat_id = ?", chatID).Order("created_at asc").Find(&messages)
 	if result.Error != nil {
@@ -65,134 +102,30 @@ func (cc *ChatController) GetChatMessages(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, messages)
 }
 
-// CreateChat creates a new chat between two users
-func (cc *ChatController) CreateChat(ctx *gin.Context) {
-	var req struct {
-		Participant1 string `json:"participant1_id" binding:"required"`
-		Participant2 string `json:"participant2_id" binding:"required"`
-	}
-
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	participant1_id, err := uuid.Parse(req.Participant1)
+// Database operations
+func (cc *ChatController) saveMessage(chatID, senderID, content string) (*models.Message, error) {
+	chatUUID, err := uuid.Parse(chatID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid participant1 ID"})
-		return
+		return nil, err
 	}
 
-	participant2_id, err := uuid.Parse(req.Participant2)
+	senderUUID, err := uuid.Parse(senderID)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid participant2 ID"})
-		return
+		return nil, err
 	}
 
-	// Check if chat already exists between these users
-	var existingChat models.Chat
-	result := cc.DB.Where(
-		"(participant1 = ? AND participant2 = ?) OR (participant1 = ? AND participant2 = ?)",
-		participant1_id, participant2_id, participant2_id, participant1_id,
-	).First(&existingChat)
-
-	if result.Error == nil {
-		// Chat already exists
-		ctx.JSON(http.StatusOK, existingChat)
-		return
+	message := models.Message{
+		ID:        uuid.New(),
+		ChatID:    chatUUID,
+		SenderID:  senderUUID,
+		Content:   content,
+		CreatedAt: time.Now(),
 	}
 
-	// Create new chat
-	newChat := models.Chat{
-		ID:           uuid.New(),
-		Participant1: participant1_id,
-		Participant2: participant2_id,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}
-
-	result = cc.DB.Create(&newChat)
+	result := cc.DB.Create(&message)
 	if result.Error != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create chat"})
-		return
+		return nil, result.Error
 	}
 
-	ctx.JSON(http.StatusCreated, newChat)
-}
-
-// HandleWebSocket handles the WebSocket connection for real-time chat
-func (cc *ChatController) HandleWebSocket(ctx *gin.Context) {
-	userIDStr := ctx.Query("userId")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-
-	conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upgrade connection"})
-		return
-	}
-
-	// Register client
-	clients[userID] = conn
-
-	// Handle incoming messages
-	go func() {
-		defer func() {
-			conn.Close()
-			delete(clients, userID)
-		}()
-
-		for {
-			// Read message
-			messageType, p, err := conn.ReadMessage()
-			if err != nil {
-				return
-			}
-
-			// Parse message
-			var msg struct {
-				ChatID  string `json:"chat_id"`
-				Content string `json:"content"`
-				To      string `json:"to"`
-			}
-
-			if err := utils.ParseJSON(string(p), &msg); err != nil {
-				continue
-			}
-
-			// Parse the recipient UUID
-			toID, err := uuid.Parse(msg.To)
-			if err != nil {
-				continue
-			}
-
-			// Parse the ChatID as UUID
-			chatID, err := uuid.Parse(msg.ChatID)
-			if err != nil {
-				continue
-			}
-
-			// Store message in database
-			newMessage := models.Message{
-				ID:        uuid.New(),
-				ChatID:    chatID,
-				SenderID:  userID,
-				Content:   msg.Content,
-				CreatedAt: time.Now(),
-			}
-
-			if result := cc.DB.Create(&newMessage); result.Error != nil {
-				continue
-			}
-
-			// Send message to recipient if online
-			if recipient, ok := clients[toID]; ok {
-				messageJSON, _ := utils.ToJSON(newMessage)
-				recipient.WriteMessage(messageType, []byte(messageJSON))
-			}
-		}
-	}()
+	return &message, nil
 }

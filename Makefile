@@ -1,11 +1,11 @@
 build:
-	docker compose build
+	docker compose up --build -d
 
 up: 
-	docker-compose up -d
+	docker compose up -d
 
 down:
-	docker-compose down
+	docker compose down
 
 clean:
 	make down && rm swafa-backend
