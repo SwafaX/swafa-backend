@@ -129,3 +129,16 @@ func (cc *ChatController) saveMessage(chatID, senderID, content string) (*models
 
 	return &message, nil
 }
+
+func (cc *ChatController) GetChat(ctx *gin.Context) {
+	chatID := ctx.Param("chatId")
+
+	var messages []models.Message
+	result := cc.DB.Where("chat_id = ?", chatID).Order("created_at asc").Find(&messages)
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch messages"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, messages)
+}

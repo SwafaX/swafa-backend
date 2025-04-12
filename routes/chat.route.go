@@ -19,4 +19,5 @@ func (crc *ChatRouteController) ChatRoute(rg *gin.RouterGroup) {
 	router.Use(middleware.DeserializeUser())
 
 	router.GET(":chatId/messages", crc.chatController.GetChatMessages)
+	router.GET("", crc.chatController.GetChat)
 }
